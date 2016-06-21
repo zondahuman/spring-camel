@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 查找最新的schemaLocation 访问 http://www.springframework.org/schema/ -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:amq="http://activemq.apache.org/schema/core"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/jms
+        http://www.springframework.org/schema/jms/spring-jms-4.0.xsd
+        http://activemq.apache.org/schema/core
+        http://activemq.apache.org/schema/core/activemq-core-5.8.0.xsd">
+
+
+	<!-- 配置消息发送目的地方式 -->
+	<!-- Queue队列：仅有一个订阅者会收到消息，消息一旦被处理就不会存在队列中 -->
+	<bean id="queue1Subjects" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="${camel.queue1.subject}"></constructor-arg>
+	</bean>
+	<bean id="queue2Subjects" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="${camel.queue2.subject}"></constructor-arg>
+	</bean>
+    <bean id="camelsQueueSubjects" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="${camels.queue1.subject}"></constructor-arg>
+    </bean>
+
+	<!-- Spring JMS Template -->
+	<bean id="jmsTemplateQueue" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="jmsConnectionFactory" />
+		<!-- <property name="defaultDestination" value="camelsQueueSubjects" /> -->
+		<!-- 区别它采用的模式为false是p2p为true是订阅 -->
+		<property name="pubSubDomain" value="false" />
+		<!-- 当设置pubSubNoLocal为true时，消费者不会接收来自同一个连接的消息。因为我们在上面的配置文件中定义了连接池的最大连接数为1，因此每次使用的连接都是同一个连接，所以就消费者就接收不到消息。只有当pubSubNoLocal为false时，消费者才能接收到来自同一个连接的消息。 -->
+		<property name="pubSubNoLocal" value="false" />
+		<!--<property name="messageConverter" ref="feedMessageConverter" />-->
+		<property name="sessionTransacted" value="true" />
+		<!-- 使 deliveryMode, priority, timeToLive设置生效 -->
+		<property name="explicitQosEnabled" value="true" />
+		<property name="deliveryMode" value="2" />
+		<property name="priority" value="4" />
+		<property name="timeToLive" value="0" />
+	</bean>
+	
+
+   <import resource="spring-producer-basic.xml" />
+
+</beans>  

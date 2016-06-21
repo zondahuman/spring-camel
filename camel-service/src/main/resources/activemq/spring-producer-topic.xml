@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 查找最新的schemaLocation 访问 http://www.springframework.org/schema/ -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:amq="http://activemq.apache.org/schema/core"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/jms
+        http://www.springframework.org/schema/jms/spring-jms-4.0.xsd
+        http://activemq.apache.org/schema/core
+        http://activemq.apache.org/schema/core/activemq-core-5.8.0.xsd">
+
+
+	<!-- 配置消息发送目的地方式 -->
+	<!-- Pub-Sub队列：仅有一个订阅者会收到消息，消息一旦被处理就不会存在队列中 -->
+	<bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+		<constructor-arg  value="${camel.topic1.subject}" />
+	</bean>
+
+    <bean id="topicDestination1" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg  value="${camel.topic2.subject}" />
+    </bean>
+
+
+    <bean id="camelsTopicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="${camels.topic1.subject}" />
+    </bean>
+
+	<!-- Spring提供的JMS工具类，它可以进行消息发送、接收等 -->
+    <bean id="jmsTemplateTopic" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="jmsConnectionFactory" />
+		<!-- 消息转换器 -->
+		<!--<property name="messageConverter" ref="feedMessageConverter" />-->
+		 <!--<property name="defaultDestination" ref="camelsTopicDestination" />-->
+		<!-- pubSubDomain: false-queue true-topic -->
+		<property name="pubSubDomain" value="true" />
+		<!-- 当设置pubSubNoLocal为true时，消费者不会接收来自同一个连接的消息。因为我们在上面的配置文件中定义了连接池的最大连接数为1，因此每次使用的连接都是同一个连接，所以就消费者就接收不到消息。只有当pubSubNoLocal为false时，消费者才能接收到来自同一个连接的消息。 -->
+		<property name="pubSubNoLocal" value="false" />
+		<property name="sessionTransacted" value="true" />
+		<!-- 使 deliveryMode, priority, timeToLive设置生效 -->
+		<property name="explicitQosEnabled" value="true" />
+		<property name="deliveryMode" value="2" />
+		<property name="priority" value="4" />
+		<property name="timeToLive" value="0" />
+	</bean>
+
+    <import resource="spring-producer-basic.xml" />
+
+
+</beans>  
